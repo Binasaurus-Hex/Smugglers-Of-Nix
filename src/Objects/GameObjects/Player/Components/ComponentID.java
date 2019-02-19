@@ -1,10 +1,10 @@
 package Objects.GameObjects.Player.Components;
 
 public enum ComponentID {
-    weaponLeft,
-    weaponRight,
-    shield,
-    hull,
-    engine,
-    jumpdrive,
+    Engine,
+    Hull,
+    Jumpdrive,
+    Shield,
+    WeaponLeft,
+    WeaponRight
 }

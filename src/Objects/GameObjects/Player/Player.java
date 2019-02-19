@@ -19,6 +19,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 public class Player extends GameObject implements Physics{
+
+    private Ship ship;
+
     public Vector2D position;
     private Vector2D midPos;
     private Vector2D directionUnitVector;
@@ -57,6 +60,8 @@ public class Player extends GameObject implements Physics{
         velocity = new Vector2D();
         resultantForce = new Vector2D(0,0);
 
+        ship = new Ship();
+
         this.width = width;
         this.height = height;
 
@@ -79,20 +84,12 @@ public class Player extends GameObject implements Physics{
             spriteX += 500;
         }
 
-        thrust = new SFXPlayer("res/SFX/Ship/Thrust.wav", true);
-        speedUp = new SFXPlayer("res/SFX/Ship/Speed up.wav", false);
-        speedDown = new SFXPlayer("res/SFX/Ship/Speed down.wav", false);
-        turn = new SFXPlayer("res/SFX/Ship/Turn.wav", true);
+        thrust = new SFXPlayer("/SFX/Ship/Thrust.wav", true);
+        speedUp = new SFXPlayer("/SFX/Ship/Speed up.wav", false);
+        speedDown = new SFXPlayer("/SFX/Ship/Speed down.wav", false);
+        turn = new SFXPlayer("/SFX/Ship/Turn.wav", true);
 
         currentLocation = SystemID.Sol;
-
-        components = new ObjectMap<>();
-        components.put(ComponentID.weaponLeft, new Weapon(Level.basic));
-        components.put(ComponentID.weaponRight, new Weapon(Level.basic));
-        components.put(ComponentID.shield, new Shield(Level.basic));
-        components.put(ComponentID.hull, new Hull(Level.basic));
-        components.put(ComponentID.engine, new Engine(Level.basic));
-        components.put(ComponentID.jumpdrive, new Jumpdrive(Level.basic));
     }
 
     public SystemID getCurrentLocation() {
@@ -103,19 +100,15 @@ public class Player extends GameObject implements Physics{
         components.replace(id, component);
     }
 
-    public float[] getStat(ComponentID id) {
-        return components.get(id).getStat();
-    }
-
     @Override
     public void update() {
         resultantForce.set(0, 0);
-        Game.getInstance().cameraMap.get(CameraID.game).setX(midPos.x);
-        Game.getInstance().cameraMap.get(CameraID.game).setY(midPos.y);
 
         followMouse();
         keyboard();
         movement();
+        Game.getInstance().cameraMap.get(CameraID.game).setX(midPos.x);
+        Game.getInstance().cameraMap.get(CameraID.game).setY(midPos.y);
     }
 
     private void followMouse() {
@@ -133,7 +126,7 @@ public class Player extends GameObject implements Physics{
         }
 
         //set the rotation to the new value from the lerp function
-        setRotation((float)Maths.lerp(facingAngle,mouseAngle,getStat(ComponentID.engine)[1]));
+        setRotation((float)Maths.lerp(facingAngle,mouseAngle,ship.engine.getTurnRate()));
 
         //set the direction unit vector to the new angle
         directionUnitVector = Vector2D.polar(getRotation(),1);
@@ -161,11 +154,11 @@ public class Player extends GameObject implements Physics{
             }
 
             enginesOn = true;
-            applyForce(directionUnitVector.scale(getStat(ComponentID.engine)[0]));
+            applyForce(directionUnitVector.scale(ship.engine.getThrust()));
         } else if(KeyHandler.isKeyPressed(Keys.S)) {
             enginesOn = false;
             thrust.play();
-            applyForce(directionUnitVector.scale(getStat(ComponentID.engine)[0]/5).invert());
+            applyForce(directionUnitVector.scale(ship.engine.getThrust()/5).invert());
         } else {
             thrust.stop();
             speedUp.stop();
@@ -188,9 +181,15 @@ public class Player extends GameObject implements Physics{
                 engineTime++;
             }
         }
-        
+
+        //drag
         Vector2D dragForceVector = new Vector2D(velocity.getUnitVector().scale(-1*velocity.mag()*0.9));
         applyForce(dragForceVector);
+
+        applyResultantForce();
+    }
+
+    private void applyResultantForce(){
         Vector2D acceleration = new Vector2D(resultantForce.x/mass,resultantForce.y/mass);
         velocity = velocity.add(acceleration);
         position = position.add(velocity);

@@ -1,10 +1,12 @@
 package Objects.Utility;
 
+import javax.sound.midi.Soundbank;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import java.io.File;
+import java.net.URL;
 
 public class SFXPlayer {
     private Clip clip;
@@ -13,7 +15,8 @@ public class SFXPlayer {
     public SFXPlayer(String sound, boolean looping) {
         try {
             this.looping = looping;
-            AudioInputStream temp = AudioSystem.getAudioInputStream(new File(sound).getAbsoluteFile());
+            URL soundUrl = this.getClass().getResource(sound);
+            AudioInputStream temp = AudioSystem.getAudioInputStream(soundUrl);
             clip = AudioSystem.getClip();
             clip.open(temp);
         } catch (Exception ex) {

@@ -1,15 +1,19 @@
 package Objects.GameObjects.Player.Components;
 
-public abstract class Component {
-    float[] stat = new float[3];
+import java.util.Map;
 
-    Component() {
-        stat[0] = 0;
-        stat[1] = 0;
-        stat[2] = 0;
+public abstract class Component {
+    protected Level level;
+
+    Component(Level level) {
+        this.level = level;
     }
 
-    public float[] getStat() {
-        return stat;
+    public Level getLevel() {
+        return level;
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
     }
 }
